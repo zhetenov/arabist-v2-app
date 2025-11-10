@@ -24,6 +24,9 @@ dependencies:
 
   # UI
   google_fonts: ^6.0.0
+  get: ^4.7.2
+  flutter_svg: ^2.2.2
+  flutter_tts: ^4.2.3
 
 dev_dependencies:
   flutter_test:
@@ -39,3 +42,9 @@ flutter:
 
   assets:
     - assets/db/arabist.db
+    - assets/images/home.svg
+    - assets/images/book.svg
+    - assets/images/graduation.svg
+    - assets/images/user.svg
+    - assets/images/search.svg
+    - assets/images/sound.svg

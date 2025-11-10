@@ -1,5 +1,6 @@
-import 'package:arabist_v2_app/src/features/dictionary/presentation/pages/dictionary_page.dart';
+import 'package:arabist_v2_app/src/app/navigation/app_shell.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'app_theme.dart';
 
 class ArabistApp extends StatelessWidget {
@@ -7,11 +8,11 @@ class ArabistApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-     return MaterialApp(
+     return GetMaterialApp(
       title: 'Arabist v2',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const DictionaryPage(),
+      home: const AppShell(),
     );
   }
 }
