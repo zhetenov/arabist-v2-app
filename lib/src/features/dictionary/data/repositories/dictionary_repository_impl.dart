@@ -1,21 +1,28 @@
-import 'package:arabist_v2_app/src/core/db/app_database.dart';
+import 'package:arabist_v2_app/src/features/dictionary/data/database/database_helper.dart';
 import 'package:arabist_v2_app/src/features/dictionary/data/models/word_model.dart';
 
 class DictionaryRepositoryImpl {
-  Future<List<WordModel>> searchWords(String query) async {
-    final db = await AppDatabase.instance();
+  final DatabaseHelper _dbHelper;
 
-    final results = await db.query(
-      'words',
-      where: 'arabic LIKE ? OR kazakh LIKE ? OR russian LIKE ?',
-      whereArgs: ['%$query%', '%$query%', '%$query%'],
-    );
+  DictionaryRepositoryImpl(this._dbHelper);
 
-    return results.map((e) => WordModel.fromMap(e)).toList();
+  Future<List<WordModel>> search(String query) async {
+    return _dbHelper.translateWord(query);
   }
 
-  Future<void> insertWord(WordModel word) async {
-    final db = await AppDatabase.instance();
-    await db.insert('words', word.toMap());
+  Future<void> toggleFavorite(int wordId, bool isFavorite) async {
+    await _dbHelper.updateFavorite(wordId, isFavorite);
+  }
+
+  Future<List<WordModel>> getFavorites() async {
+    return _dbHelper.loadFavorites();
+  }
+
+  Future<void> updateHistory(int wordId) async {
+    await _dbHelper.updateHistory(wordId);
+  }
+
+  Future<List<WordModel>> getHistory() async {
+    return _dbHelper.loadHistory();
   }
 }
