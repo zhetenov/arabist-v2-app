@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:arabist_v2_app/src/features/dictionary/cubit/search_cubit.dart';
 import 'package:arabist_v2_app/src/features/dictionary/data/database/database_helper.dart';
@@ -46,10 +47,39 @@ class _DictionaryPageState extends State<DictionaryPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          SearchCubit(DictionaryRepositoryImpl(DatabaseHelper())),
+      create: (_) => SearchCubit(DictionaryRepositoryImpl(DatabaseHelper())),
       child: Scaffold(
         backgroundColor: const Color(0xFF0D0F2B),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF0D0F2B),
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
+          centerTitle: true,
+          title: const Text(
+            'Іздеу',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 19,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          leadingWidth: 90,
+          leading: GestureDetector(
+            onTap: () async {
+              final url = Uri.parse('https://www.almaany.com/');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url, mode: LaunchMode.externalApplication);
+              }
+            },
+            child: const Center(
+              child: Text(
+                'المعاني',
+                style: TextStyle(fontSize: 18, color: Colors.white),
+              ),
+            ),
+          ),
+        ),
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -85,17 +115,15 @@ class _DictionaryPageState extends State<DictionaryPage> {
                         return SingleChildScrollView(
                           child: WordListWidget(
                             words: state.words,
-                            onFavoriteToggle: (word) => context
-                                .read<SearchCubit>()
-                                .toggleFavorite(word),
+                            onFavoriteToggle: (word) =>
+                                context.read<SearchCubit>().toggleFavorite(word),
                           ),
                         );
                       } else if (state is SearchError) {
                         return Center(
                           child: Text(
                             'Error: ${state.message}',
-                            style:
-                                const TextStyle(color: Colors.redAccent),
+                            style: const TextStyle(color: Colors.redAccent),
                           ),
                         );
                       }
@@ -124,8 +152,7 @@ class _SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
       decoration: BoxDecoration(
         color: const Color(0xFF1a2036),
         borderRadius: BorderRadius.circular(14),
@@ -159,11 +186,7 @@ class _SearchBar extends StatelessWidget {
               controller.clear();
               context.read<SearchCubit>().search('');
             },
-            icon: const Icon(
-              Icons.close,
-              color: Color(0xFF7d7f88),
-              size: 20,
-            ),
+            icon: const Icon(Icons.close, color: Color(0xFF7d7f88), size: 20),
           ),
         ],
       ),
