@@ -19,7 +19,6 @@ class _AppShellState extends State<AppShell> {
 
   void _onTap(int index) {
     if (index == _currentIndex) {
-      // если повторно тапнули — сброс навигации внутри
       _navigatorKeys[index].currentState?.popUntil((r) => r.isFirst);
     } else {
       setState(() => _currentIndex = index);
