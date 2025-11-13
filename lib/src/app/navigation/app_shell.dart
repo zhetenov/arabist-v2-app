@@ -3,8 +3,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:arabist_v2_app/src/features/dictionary/presentation/pages/dictionary_page.dart';
 import 'package:arabist_v2_app/src/features/dictionary/presentation/pages/favorites_page.dart';
-import 'package:arabist_v2_app/src/features/dictionary/presentation/pages/game_page.dart';
-import 'package:arabist_v2_app/src/features/dictionary/presentation/pages/profile_page.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -34,8 +32,6 @@ class _AppShellState extends State<AppShell> {
         children: [
           _buildNavigator(0, const DictionaryPage()),
           _buildNavigator(1, const FavoritesPage()),
-          _buildNavigator(2, const GamePage()),
-          _buildNavigator(3, const ProfilePage()),
         ],
       ),
       bottomNavigationBar: _buildBottomNav(),
@@ -71,10 +67,8 @@ class _AppShellState extends State<AppShell> {
           enableFeedback: false,
           iconSize: 22,
           items: [
-            _navItem('assets/images/home.svg', 'Home'),
-            _navItem('assets/images/book.svg', 'Vocabulary'),
-            _navItem('assets/images/graduation.svg', 'Lessons'),
-            _navItem('assets/images/user.svg', 'Profile'),
+            _navItem('assets/images/home.svg', 'Іздеу'),
+            _navItem('assets/images/book.svg', 'Таңдаулылар'),
           ],
         ),
       ),

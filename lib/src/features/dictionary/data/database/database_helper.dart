@@ -10,7 +10,8 @@ import 'arabic_utils.dart';
 
 class DatabaseHelper {
   static Database? _database;
-  static const int currentVersion = 1; // IMPORTANT: увеличивай при обновлении .db
+  static const int currentVersion =
+      1; // IMPORTANT: увеличивай при обновлении .db
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -33,7 +34,10 @@ class DatabaseHelper {
       }
 
       final ByteData data = await rootBundle.load('assets/db/arabist.db');
-      final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+      final bytes = data.buffer.asUint8List(
+        data.offsetInBytes,
+        data.lengthInBytes,
+      );
       await File(path).writeAsBytes(bytes, flush: true);
 
       await prefs.setInt('db_version', currentVersion);
@@ -77,7 +81,11 @@ class DatabaseHelper {
 
   Future<List<WordModel>> loadKazakhWordsWithArabic(String arabic) async {
     final db = await database;
-    final res = await db.query('kazakh', where: 'arabic = ?', whereArgs: [arabic]);
+    final res = await db.query(
+      'kazakh',
+      where: 'arabic = ?',
+      whereArgs: [arabic],
+    );
     return res.map(WordModel.fromMap).toList();
   }
 
@@ -95,7 +103,9 @@ class DatabaseHelper {
     return res.map(WordModel.fromMap).toList();
   }
 
-  Future<List<WordModel>> loadKazakhWordsWithKazakhSimilarWord(String word) async {
+  Future<List<WordModel>> loadKazakhWordsWithKazakhSimilarWord(
+    String word,
+  ) async {
     final db = await database;
     const sql = '''
       SELECT DISTINCT * FROM (
@@ -112,16 +122,20 @@ class DatabaseHelper {
     return res.map(WordModel.fromMap).toList();
   }
 
-  Future<List<WordModel>> loadKazakhWordsWithDescriptionSimilar(String word) async {
+  Future<List<WordModel>> loadKazakhWordsWithDescriptionSimilar(
+    String word,
+  ) async {
     final db = await database;
-    const sql = 'SELECT * FROM kazakh WHERE lower(kazakh) LIKE "%" || ? || "%" LIMIT 100';
+    const sql =
+        'SELECT * FROM kazakh WHERE lower(kazakh) LIKE "%" || ? || "%" LIMIT 100';
     final res = await db.rawQuery(sql, [word]);
     return res.map(WordModel.fromMap).toList();
   }
 
   Future<List<WordModel>> loadKazakhWordsByDescription(String word) async {
     final db = await database;
-    const sql = 'SELECT * FROM kazakh WHERE lower(description) LIKE "%" || ? || "%" LIMIT 100';
+    const sql =
+        'SELECT * FROM kazakh WHERE lower(description) LIKE "%" || ? || "%" LIMIT 100';
     final res = await db.rawQuery(sql, [word]);
     return res.map(WordModel.fromMap).toList();
   }
@@ -138,10 +152,10 @@ class DatabaseHelper {
 
   Future<int> updateFavorite(int wordId, bool isFavorite) async {
     final db = await database;
-    return db.rawUpdate(
-      'UPDATE kazakh SET is_chosen = ? WHERE id = ?',
-      [isFavorite ? 1 : 0, wordId],
-    );
+    return db.rawUpdate('UPDATE kazakh SET is_chosen = ? WHERE id = ?', [
+      isFavorite ? 1 : 0,
+      wordId,
+    ]);
   }
 
   Future<List<WordModel>> loadFavorites() async {
@@ -150,10 +164,29 @@ class DatabaseHelper {
     return res.map(WordModel.fromMap).toList();
   }
 
+  Future<List<WordModel>> loadAllWords() async {
+    final db = await database;
+    final res = await db.rawQuery('SELECT * FROM kazakh LIMIT 50');
+    return res.map(WordModel.fromMap).toList();
+  }
+
   Future<void> updateHistory(int wordId) async {
     final db = await database;
     final viewedAt = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
-    await db.rawUpdate('UPDATE kazakh SET viewed_at = ? WHERE id = ?', [viewedAt, wordId]);
+    await db.rawUpdate('UPDATE kazakh SET viewed_at = ? WHERE id = ?', [
+      viewedAt,
+      wordId,
+    ]);
+  }
+
+  Future<void> updateViewedAt(int wordId) async {
+    final db = await database;
+    await db.update(
+      'kazakh',
+      {'viewed_at': DateTime.now().millisecondsSinceEpoch},
+      where: 'id = ?',
+      whereArgs: [wordId],
+    );
   }
 
   Future<List<WordModel>> loadHistory() async {

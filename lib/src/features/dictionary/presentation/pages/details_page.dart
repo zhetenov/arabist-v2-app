@@ -7,8 +7,9 @@ import 'package:arabist_v2_app/src/features/dictionary/presentation/widgets/word
 
 class DetailsPage extends StatefulWidget {
   final WordModel word;
+  final void Function(WordModel word)? onFavoriteToggle;
 
-  const DetailsPage({super.key, required this.word});
+  const DetailsPage({super.key, required this.word, this.onFavoriteToggle});
 
   @override
   State<DetailsPage> createState() => _DetailsPageState();
@@ -23,6 +24,7 @@ class _DetailsPageState extends State<DetailsPage> {
   void initState() {
     super.initState();
     word = widget.word;
+    DatabaseHelper().updateViewedAt(word.id);
     _loadRoots();
   }
 
@@ -40,6 +42,7 @@ class _DetailsPageState extends State<DetailsPage> {
     final updated = !word.isChosen;
     await DatabaseHelper().updateFavorite(word.id, updated);
     setState(() => word = word.copyWith(isChosen: updated));
+    widget.onFavoriteToggle?.call(word);
   }
 
   Future<void> _copyToClipboard() async {
@@ -82,12 +85,12 @@ class _DetailsPageState extends State<DetailsPage> {
             fontSize: 19,
             fontWeight: FontWeight.w500,
           ),
-          textDirection:
-              _isArabic(title) ? TextDirection.rtl : TextDirection.ltr,
+          textDirection: _isArabic(title)
+              ? TextDirection.rtl
+              : TextDirection.ltr,
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-              color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
@@ -108,7 +111,6 @@ class _DetailsPageState extends State<DetailsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🔹 Word Card
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -197,7 +199,10 @@ class _DetailsPageState extends State<DetailsPage> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    WordListWidget(words: rootWords),
+                    WordListWidget(
+                      words: rootWords,
+                      onAfterDetailsPop: _loadRoots,
+                    ),
                   ],
                 ),
               if (isLoading)

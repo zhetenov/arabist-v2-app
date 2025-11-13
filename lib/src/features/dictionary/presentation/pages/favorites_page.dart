@@ -1,7 +1,9 @@
+import 'package:arabist_v2_app/src/features/dictionary/presentation/pages/quiz_page.dart';
 import 'package:flutter/material.dart';
 import 'package:arabist_v2_app/src/features/dictionary/data/database/database_helper.dart';
 import 'package:arabist_v2_app/src/features/dictionary/data/models/word_model.dart';
 import 'package:arabist_v2_app/src/features/dictionary/presentation/widgets/word_list_widget.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class FavoritesPage extends StatefulWidget {
   const FavoritesPage({super.key});
@@ -40,10 +42,39 @@ class _FavoritesPageState extends State<FavoritesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0D0F2B),
+      floatingActionButton: favorites.isNotEmpty
+          ? FloatingActionButton.extended(
+              backgroundColor: const Color(0xFFF5C851),
+              icon: SvgPicture.asset(
+                'assets/images/lightning.svg',
+                height: 22,
+                width: 22,
+                colorFilter: const ColorFilter.mode(
+                  Colors.black,
+                  BlendMode.srcIn,
+                ),
+              ),
+              label: const Text(
+                'Жаттығу',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const QuizPage()),
+                );
+              },
+            )
+          : null,
       appBar: AppBar(
         backgroundColor: const Color(0xFF0D0F2B),
         elevation: 0,
         scrolledUnderElevation: 0,
+
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         title: const Text(
@@ -63,20 +94,18 @@ class _FavoritesPageState extends State<FavoritesPage> {
           onRefresh: _loadFavorites,
           child: isLoading
               ? const Center(
-                  child: CircularProgressIndicator(
-                    color: Color(0xFFF5C851),
-                  ),
+                  child: CircularProgressIndicator(color: Color(0xFFF5C851)),
                 )
               : favorites.isEmpty
-                  ? const _EmptyState()
-                  : SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16),
-                      child: WordListWidget(
-                        words: favorites,
-                        onFavoriteToggle: _toggleFavorite,
-                      ),
-                    ),
+              ? const _EmptyState()
+              : SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  child: WordListWidget(
+                    words: favorites,
+                    onFavoriteToggle: _toggleFavorite,
+                  ),
+                ),
         ),
       ),
     );
@@ -107,10 +136,7 @@ class _EmptyState extends StatelessWidget {
             SizedBox(height: 8),
             Text(
               'Жұлдызшаны басып, сөздерді таңдаулыға қосыңыз.',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 15,
-              ),
+              style: TextStyle(color: Colors.white70, fontSize: 15),
               textAlign: TextAlign.center,
             ),
           ],

@@ -50,3 +50,5 @@ flutter:
     - assets/images/user.svg
     - assets/images/search.svg
     - assets/images/sound.svg
+    - assets/images/nmu.png
+    - assets/images/lightning.svg
