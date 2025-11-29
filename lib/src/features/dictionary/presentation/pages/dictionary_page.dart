@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:arabist_v2_app/src/features/dictionary/cubit/favorite_cubit.dart';
 import 'package:arabist_v2_app/src/features/dictionary/cubit/search_cubit.dart';
 import 'package:arabist_v2_app/src/features/dictionary/data/database/database_helper.dart';
 import 'package:arabist_v2_app/src/features/dictionary/data/models/word_model.dart';
@@ -216,6 +217,8 @@ class _DictionaryPageState extends State<DictionaryPage> {
                                     word.id,
                                     !word.isChosen,
                                   );
+                                  // 🔥 Ключевое изменение: уведомляем FavoritesCubit
+                                  context.read<FavoritesCubit>().refresh();
                                   _loadHistory();
                                 },
                               ),
@@ -225,7 +228,6 @@ class _DictionaryPageState extends State<DictionaryPage> {
                       );
                     }
 
-                    // 👇 иначе показываем результаты поиска
                     if (state is SearchInitial) {
                       return const Center(
                         child: Text(
@@ -250,8 +252,10 @@ class _DictionaryPageState extends State<DictionaryPage> {
                       return SingleChildScrollView(
                         child: WordListWidget(
                           words: state.words,
-                          onFavoriteToggle: (word) =>
-                              context.read<SearchCubit>().toggleFavorite(word),
+                          onFavoriteToggle: (word) async {
+                            await context.read<SearchCubit>().toggleFavorite(word);
+                            context.read<FavoritesCubit>().refresh();
+                          },
                           onAfterDetailsPop: _loadHistory,
                         ),
                       );

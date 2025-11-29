@@ -10,8 +10,7 @@ import 'arabic_utils.dart';
 
 class DatabaseHelper {
   static Database? _database;
-  static const int currentVersion =
-      1; // IMPORTANT: увеличивай при обновлении .db
+  static const int currentVersion = 1;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -27,8 +26,6 @@ class DatabaseHelper {
     final storedVersion = prefs.getInt('db_version') ?? 0;
 
     if (currentVersion > storedVersion || !(await File(path).exists())) {
-      print('📦 Copying or updating local DB to version $currentVersion...');
-
       if (await File(path).exists()) {
         await deleteDatabase(path);
       }
@@ -151,11 +148,16 @@ class DatabaseHelper {
   }
 
   Future<int> updateFavorite(int wordId, bool isFavorite) async {
-    final db = await database;
-    return db.rawUpdate('UPDATE kazakh SET is_chosen = ? WHERE id = ?', [
-      isFavorite ? 1 : 0,
-      wordId,
-    ]);
+    try {
+      final db = await database;
+      final result = await db.rawUpdate(
+        'UPDATE kazakh SET is_chosen = ? WHERE id = ?',
+        [isFavorite ? 1 : 0, wordId],
+      );
+      return result;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<List<WordModel>> loadFavorites() async {
@@ -200,5 +202,21 @@ class DatabaseHelper {
   Future<void> clearHistory() async {
     final db = await database;
     await db.rawUpdate('UPDATE kazakh SET viewed_at = NULL');
+  }
+
+  Future<WordModel?> getWordById(int id) async {
+    try {
+      final db = await database;
+      final maps = await db.query('kazakh', where: 'id = ?', whereArgs: [id]);
+
+      if (maps.isNotEmpty) {
+        final word = WordModel.fromMap(maps.first);
+        return word;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
   }
 }

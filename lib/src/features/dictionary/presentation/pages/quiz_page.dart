@@ -69,7 +69,7 @@ class _QuizPageState extends State<QuizPage> {
 
     setState(() => isCorrect = correct);
 
-    Future.delayed(const Duration(seconds: 1), () {
+    Future.delayed(const Duration(milliseconds: 1500), () {
       if (!mounted) return;
 
       if (currentIndex < words.length - 1) {
@@ -178,7 +178,7 @@ class _QuizPageState extends State<QuizPage> {
                         ? const Color(0xFF1a2036)
                         : (opt == (currentWord.kazakh ?? '')
                               ? Colors.green[700]
-                              : Colors.red[700]),
+                              : const Color(0xFF1a2036).withValues(alpha: 0.8)),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(

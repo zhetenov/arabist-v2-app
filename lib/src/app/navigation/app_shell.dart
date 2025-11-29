@@ -23,6 +23,17 @@ class _AppShellState extends State<AppShell> {
     }
   }
 
+  Widget _page(int index) {
+    switch (index) {
+      case 0:
+        return const DictionaryPage();
+      case 1:
+        return const FavoritesPage();
+      default:
+        return const DictionaryPage();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,18 +41,20 @@ class _AppShellState extends State<AppShell> {
       body: IndexedStack(
         index: _currentIndex,
         children: [
-          _buildNavigator(0, const DictionaryPage()),
-          _buildNavigator(1, const FavoritesPage()),
+          _buildNavigator(0),
+          _buildNavigator(1),
         ],
       ),
       bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  Widget _buildNavigator(int index, Widget page) {
+  Widget _buildNavigator(int index) {
     return Navigator(
       key: _navigatorKeys[index],
-      onGenerateRoute: (settings) => MaterialPageRoute(builder: (_) => page),
+      onGenerateRoute: (_) => MaterialPageRoute(
+        builder: (_) => _page(index),
+      ),
     );
   }
 
@@ -59,13 +72,13 @@ class _AppShellState extends State<AppShell> {
           onTap: _onTap,
           backgroundColor: Colors.transparent,
           selectedItemColor: const Color(0xFFF5C851),
-          unselectedItemColor: Colors.grey[500],
-          showUnselectedLabels: true,
+          unselectedItemColor: Colors.grey,
           selectedFontSize: 12,
           unselectedFontSize: 12,
           elevation: 0,
-          enableFeedback: false,
           iconSize: 22,
+          enableFeedback: false,
+          showUnselectedLabels: true,
           items: [
             _navItem('assets/images/home.svg', 'Іздеу'),
             _navItem('assets/images/book.svg', 'Таңдаулылар'),
@@ -77,16 +90,9 @@ class _AppShellState extends State<AppShell> {
 
   BottomNavigationBarItem _navItem(String asset, String label) {
     return BottomNavigationBarItem(
-      icon: SvgPicture.asset(asset,
-          height: 22,
-          width: 22,
-          colorFilter:
-              ColorFilter.mode(Colors.grey[500]!, BlendMode.srcIn)),
-      activeIcon: SvgPicture.asset(asset,
-          height: 22,
-          width: 22,
-          colorFilter:
-              const ColorFilter.mode(Color(0xFFF5C851), BlendMode.srcIn)),
+      icon: SvgPicture.asset(asset, height: 22, width: 22, color: Colors.grey),
+      activeIcon: SvgPicture.asset(asset, height: 22, width: 22,
+          colorFilter: const ColorFilter.mode(Color(0xFFF5C851), BlendMode.srcIn)),
       label: label,
     );
   }

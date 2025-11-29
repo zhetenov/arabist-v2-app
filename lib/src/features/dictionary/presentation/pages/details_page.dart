@@ -1,6 +1,9 @@
+import 'package:arabist_v2_app/src/features/dictionary/data/database/arabic_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:arabist_v2_app/src/features/dictionary/cubit/favorite_cubit.dart';
 import 'package:arabist_v2_app/src/features/dictionary/data/database/database_helper.dart';
 import 'package:arabist_v2_app/src/features/dictionary/data/models/word_model.dart';
 import 'package:arabist_v2_app/src/features/dictionary/presentation/widgets/word_list_widget.dart';
@@ -16,38 +19,46 @@ class DetailsPage extends StatefulWidget {
 }
 
 class _DetailsPageState extends State<DetailsPage> {
-  late WordModel word;
   List<WordModel> rootWords = [];
   bool isLoading = true;
+  bool _isFavorite = false;
 
   @override
   void initState() {
     super.initState();
-    word = widget.word;
-    DatabaseHelper().updateViewedAt(word.id);
+    _isFavorite = widget.word.isChosen;
+    DatabaseHelper().updateViewedAt(widget.word.id);
     _loadRoots();
   }
 
   Future<void> _loadRoots() async {
     setState(() => isLoading = true);
     final db = DatabaseHelper();
-    final roots = await db.loadRoots(word.rootId ?? 0, word.id);
+    final roots = await db.loadRoots(widget.word.rootId ?? 0, widget.word.id);
     setState(() {
       rootWords = roots;
       isLoading = false;
     });
   }
 
-  Future<void> _toggleFavorite() async {
-    final updated = !word.isChosen;
-    await DatabaseHelper().updateFavorite(word.id, updated);
-    setState(() => word = word.copyWith(isChosen: updated));
-    widget.onFavoriteToggle?.call(word);
+  Future<void> _toggleRootFavorite(WordModel rootWord) async {
+    final db = DatabaseHelper();
+    final updated = !rootWord.isChosen;
+
+    await db.updateFavorite(rootWord.id, updated);
+
+    setState(() {
+      rootWords = rootWords
+          .map((w) => w.id == rootWord.id ? w.copyWith(isChosen: updated) : w)
+          .toList();
+    });
+
+    context.read<FavoritesCubit>().refresh();
   }
 
   Future<void> _copyToClipboard() async {
     final text =
-        '${word.arabic ?? ''}\n${word.kazakh ?? ''}\n${word.description ?? ''}';
+        '${widget.word.arabic ?? ''}\n${widget.word.kazakh ?? ''}\n${widget.word.description ?? ''}';
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -58,17 +69,11 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-  bool _isArabic(String text) {
-    if (text.isEmpty) return false;
-    final code = text.codeUnitAt(0);
-    return code >= 0x0600 && code <= 0x06FF;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final title = word.arabic?.isNotEmpty == true
-        ? word.arabic!
-        : (word.kazakh ?? 'Толық ақпарат');
+    final title = widget.word.arabic?.isNotEmpty == true
+        ? widget.word.arabic!
+        : (widget.word.kazakh ?? 'Толық ақпарат');
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D0F2B),
@@ -85,7 +90,7 @@ class _DetailsPageState extends State<DetailsPage> {
             fontSize: 19,
             fontWeight: FontWeight.w500,
           ),
-          textDirection: _isArabic(title)
+          textDirection: isArabic(title)
               ? TextDirection.rtl
               : TextDirection.ltr,
         ),
@@ -93,16 +98,6 @@ class _DetailsPageState extends State<DetailsPage> {
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              word.isChosen ? Icons.star : Icons.star_border_outlined,
-              color: const Color(0xFFF5C851),
-              size: 24,
-            ),
-            onPressed: _toggleFavorite,
-          ),
-        ],
       ),
       body: SafeArea(
         bottom: false,
@@ -127,7 +122,7 @@ class _DetailsPageState extends State<DetailsPage> {
                       children: [
                         Expanded(
                           child: Text(
-                            word.arabic ?? '',
+                            widget.word.arabic ?? '',
                             style: const TextStyle(
                               color: Color(0xFFF5C851),
                               fontSize: 32,
@@ -142,7 +137,7 @@ class _DetailsPageState extends State<DetailsPage> {
                           child: Align(
                             alignment: Alignment.centerRight,
                             child: Text(
-                              word.arabicSecond ?? '',
+                              widget.word.arabicSecond ?? '',
                               textAlign: TextAlign.right,
                               style: const TextStyle(
                                 color: Color(0xFFb7b7b7),
@@ -160,7 +155,7 @@ class _DetailsPageState extends State<DetailsPage> {
                     const Divider(color: Color(0x33FFFFFF), thickness: 1),
                     const SizedBox(height: 10),
                     Text(
-                      word.kazakh ?? word.description ?? '',
+                      widget.word.description ?? widget.word.kazakh ?? '',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -172,6 +167,21 @@ class _DetailsPageState extends State<DetailsPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
+                        IconButton(
+                          icon: Icon(
+                            _isFavorite ? Icons.star : Icons.star_border,
+                            color: const Color(0xFFF5C851),
+                            size: 28,
+                          ),
+                          onPressed: () async {
+                            await _toggleRootFavorite(widget.word);
+                            if (mounted) {
+                              setState(() {
+                                _isFavorite = !_isFavorite;
+                              });
+                            }
+                          },
+                        ),
                         IconButton(
                           icon: const Icon(
                             Icons.copy,
@@ -202,6 +212,7 @@ class _DetailsPageState extends State<DetailsPage> {
                     WordListWidget(
                       words: rootWords,
                       onAfterDetailsPop: _loadRoots,
+                      onFavoriteToggle: _toggleRootFavorite,
                     ),
                   ],
                 ),

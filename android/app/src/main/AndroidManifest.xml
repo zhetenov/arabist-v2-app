@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="arabist_v2_app"
+        android:label="Арабист"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

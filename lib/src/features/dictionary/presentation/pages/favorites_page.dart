@@ -1,8 +1,10 @@
+import 'package:arabist_v2_app/src/features/dictionary/cubit/favorite_cubit.dart';
+import 'package:arabist_v2_app/src/features/dictionary/data/database/database_helper.dart';
 import 'package:arabist_v2_app/src/features/dictionary/presentation/pages/quiz_page.dart';
 import 'package:flutter/material.dart';
-import 'package:arabist_v2_app/src/features/dictionary/data/database/database_helper.dart';
 import 'package:arabist_v2_app/src/features/dictionary/data/models/word_model.dart';
 import 'package:arabist_v2_app/src/features/dictionary/presentation/widgets/word_list_widget.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class FavoritesPage extends StatefulWidget {
@@ -13,68 +15,53 @@ class FavoritesPage extends StatefulWidget {
 }
 
 class _FavoritesPageState extends State<FavoritesPage> {
-  List<WordModel> favorites = [];
-  bool isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _loadFavorites();
-  }
-
-  Future<void> _loadFavorites() async {
-    setState(() => isLoading = true);
-    final db = DatabaseHelper();
-    final favs = await db.loadFavorites();
-    setState(() {
-      favorites = favs;
-      isLoading = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FavoritesCubit>().loadFavorites();
     });
-  }
-
-  Future<void> _toggleFavorite(WordModel word) async {
-    final updated = !word.isChosen;
-    await DatabaseHelper().updateFavorite(word.id, updated);
-    await _loadFavorites();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0D0F2B),
-      floatingActionButton: favorites.isNotEmpty
-          ? FloatingActionButton.extended(
-              backgroundColor: const Color(0xFFF5C851),
-              icon: SvgPicture.asset(
-                'assets/images/lightning.svg',
-                height: 22,
-                width: 22,
-                colorFilter: const ColorFilter.mode(
-                  Colors.black,
-                  BlendMode.srcIn,
-                ),
-              ),
-              label: const Text(
-                'Жаттығу',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const QuizPage()),
-                );
-              },
-            )
-          : null,
+      floatingActionButton: BlocBuilder<FavoritesCubit, List<WordModel>>(
+        builder: (context, favorites) {
+          return favorites.isNotEmpty
+              ? FloatingActionButton.extended(
+                  backgroundColor: const Color(0xFFF5C851),
+                  icon: SvgPicture.asset(
+                    'assets/images/lightning.svg',
+                    height: 22,
+                    width: 22,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.black,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  label: const Text(
+                    'Жаттығу',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const QuizPage()),
+                    );
+                  },
+                )
+              : const SizedBox.shrink();
+        },
+      ),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0D0F2B),
         elevation: 0,
         scrolledUnderElevation: 0,
-
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         title: const Text(
@@ -88,27 +75,36 @@ class _FavoritesPageState extends State<FavoritesPage> {
       ),
       body: SafeArea(
         bottom: false,
-        child: RefreshIndicator(
-          backgroundColor: const Color(0xFF1a2036),
-          color: const Color(0xFFF5C851),
-          onRefresh: _loadFavorites,
-          child: isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: Color(0xFFF5C851)),
-                )
-              : favorites.isEmpty
-              ? const _EmptyState()
-              : SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  child: WordListWidget(
-                    words: favorites,
-                    onFavoriteToggle: _toggleFavorite,
-                  ),
-                ),
+        child: BlocBuilder<FavoritesCubit, List<WordModel>>(
+          builder: (context, favorites) {
+            return RefreshIndicator(
+              backgroundColor: const Color(0xFF1a2036),
+              color: const Color(0xFFF5C851),
+              onRefresh: () => context.read<FavoritesCubit>().refresh(),
+              child: favorites.isEmpty
+                  ? const _EmptyState()
+                  : SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(16),
+                      child: WordListWidget(
+                        words: favorites,
+                        onFavoriteToggle: _toggleFavorite,
+                      ),
+                    ),
+            );
+          },
         ),
       ),
     );
+  }
+
+  Future<void> _toggleFavorite(WordModel word) async {
+    final db = DatabaseHelper();
+    final updated = !word.isChosen;
+    
+    await db.updateFavorite(word.id, updated);
+    
+    context.read<FavoritesCubit>().refresh();
   }
 }
 
